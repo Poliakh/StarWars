@@ -4,7 +4,6 @@ export default class SwapiService {
 
 	async getResource(url) {
 		const res = await fetch(`${this._apiBase}${url}`);
-
 		if (!res.ok) {
 			throw new Error(`Could not fetch ${url}` +
 				`, received ${res.status}`)
@@ -13,12 +12,15 @@ export default class SwapiService {
 	}
 
 	async getAllPeople() {
-		const res = await this.getResource(`/people/`);
-		return res.results;
+		const res = await this.getResource('/people/');
+		return res.results.map(people => {
+			return this._transfomPeople(people);
+		});
 	}
 
-	getPerson(id) {
-		return this.getResource(`/people/${id}/`);
+	async getPerson(id) {
+		const person = await this.getResource(`/people/${id}/`);
+		return this._transfomPeople(person);
 	}
 
 	async getAllPlanets() {
@@ -41,17 +43,26 @@ export default class SwapiService {
 	getStarship(id) {
 		return this.getResource(`/starships/${id}/`);
 	}
-	_extractId(item){
+	_extractId = (item) => {
 		const idRegExp = /\/([0-9]*)\/$/;
 		return item.url.match(idRegExp)[1];
 	}
-	_transfomPlanet(planet){
+	_transfomPlanet = (planet) => {
 		return{
 			id:this._extractId(planet),
 			name:planet.name,
 			population:planet.population,
 			rotationPeriod:planet.rotation_period,
 			diameter:planet.diameter,
+		}
+	}
+	_transfomPeople = (people) => {
+		return{
+			id:this._extractId(people),
+			name:people.name,
+			male:people.gender,
+			birthDay:people.birth_year,
+			eyeColor:people.eye_color,
 		}
 	}
 }
